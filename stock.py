@@ -6,20 +6,30 @@ class Stock:
 
     def __init__(self):
         self.list_orders = []
+        self.preponderance = ''
+        self.volume = 0
 
     def append_orders(self, list_orders):
         for order in list_orders:
             self.list_orders.append(order)
 
-    def funk(self, order, raz, price):
-        if order['type'] == 'buy':
-            if order['price'] > price:
-                return order['value']
-        elif order['type'] == 'sell' and order['price'] < price:
+    def funk(self, order: pd.Series, raz, price):
+        if (order['type'] == 'sell') & (order['price'] < price):
             return order['value']
-        elif order['price'] == price and order['minraz'] == raz:
+        elif (order['type'] == 'buy') & (order['price'] > price):
+            return order['value']
+        elif (order['price'] == price) & (self.volume != 0):
+            if (((self.preponderance == 'sell') & (order['type'] == 'sell')) | (((self.preponderance == 'buy') & (order['type'] == 'buy')))):
+                if self.volume >= order['value']:
+                    self.volume -= order['value']
+                    return order['value']
+                else:
+                    s = self.volume
+                    self.volume == 0
+                    return s
+            else:
+                return order['value']
 
-            return order['value'] - raz
         else:
             return 0
 
@@ -32,7 +42,7 @@ class Stock:
             product_buy = orders_pd[(orders_pd['product'] == product) &
                                     (orders_pd['type'] == 'buy')]
             product_sell.sort_values(by=['price', 'value'], ascending=[True, False], inplace=True)
-            product_buy.sort_values(by=['price', 'value'], ascending=False, inplace=True)
+            product_buy.sort_values(by=['price', 'value'], ascending=[False, True], inplace=True)
             product_sell['cumsum_sell'] = product_sell['value'].cumsum()
             product_buy['cumsum_buy'] = product_buy['value'].cumsum()
             f = pd.concat([product_sell, product_buy]).sort_values(by=['price', 'cumsum_sell', 'cumsum_buy'],
@@ -42,28 +52,21 @@ class Stock:
             f['cumsum_buy'].fillna(method='bfill', inplace=True)
             f['cumsum_buy'].fillna(0, inplace=True)
 
-
-
             f['max'] = f[['cumsum_sell', 'cumsum_buy']].min(axis=1)
             f['minraz'] = abs(f['cumsum_sell'] - f['cumsum_buy'])
             max_trade = f['max'].max()
             min_raz = f[f['max'] == max_trade]['minraz'].min()
-            try:
-                price = float(f[(f['max'] == max_trade) & (f['minraz'] == min_raz)]['price'])
-            except:
-                print(float(f[(f['max'] == max_trade) & (f['minraz'] == min_raz)]['price']))
-                price = float(f[(f['max'] == max_trade) & (f['minraz'] == min_raz)]['price'][0])
+            ffff = f[(f['max'] == max_trade) & (f['minraz'] == min_raz)]
+            price = ffff.iloc[0]['price']
+            if ffff.iloc[0]['cumsum_sell'] < ffff.iloc[0]['cumsum_buy']:
+                self.preponderance = 'buy'
+                self.volume = ffff.iloc[0]['cumsum_sell']
+            else:
+                self.preponderance = 'sell'
+                self.volume = ffff.iloc[0]['cumsum_buy']
 
 
-            print(f.groupby(by='price').agg({'value': 'sum',
-                                             'cumsum_sell': 'max',
-                                             'cumsum_buy': 'max',
-                                             'max': 'max',
-                                             'minraz': 'min'}))
-            print(price, max_trade, min_raz)
+            f['trade'] = f.apply(self.funk, args=(min_raz, price), axis=1)
+            print(f)
 
-            f['trade'] = f.apply(func=self.funk, axis=1, args=(min_raz, price))
-            # print(product_sell)
-            # print(product_buy)
-            print('sell', f[f['type'] == 'sell']['trade'].sum(), 'buy', f[f['type'] == 'buy']['trade'].sum())
-            print(f.groupby(['price', 'type'].sum()))
+            print('max:', max_trade, 'min_rax:', min_raz, 'price:', price)
