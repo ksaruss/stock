@@ -18,18 +18,12 @@ class Stock:
             return order['value']
         elif (order['type'] == 'buy') & (order['price'] > price):
             return order['value']
-        elif (order['price'] == price) & (self.volume != 0):
-            if (((self.preponderance == 'sell') & (order['type'] == 'sell')) | (((self.preponderance == 'buy') & (order['type'] == 'buy')))):
-                if self.volume >= order['value']:
-                    self.volume -= order['value']
-                    return order['value']
-                else:
-                    s = self.volume
-                    self.volume == 0
-                    return s
-            else:
+        elif (order['minraz'] == raz) | (order['price'] == price):
+            if ((order['type'] == 'sell') & (order['cumsum_sell'] <= order['max'])) or \
+               ((order['type'] == 'buy') & (order['cumsum_buy'] <= order['max'])):
                 return order['value']
-
+            else:
+                return order['value'] - raz
         else:
             return 0
 
@@ -70,3 +64,4 @@ class Stock:
             print(f)
 
             print('max:', max_trade, 'min_rax:', min_raz, 'price:', price)
+            print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
