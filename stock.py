@@ -13,21 +13,22 @@ class Stock:
         for order in list_orders:
             self.list_orders.append(order)
 
-    def funk(self, order: pd.Series, raz, price):
-        if (order['type'] == 'sell') & (order['price'] < price):
-            return order['value']
-        elif (order['type'] == 'buy') & (order['price'] > price):
-            return order['value']
-        elif (order['minraz'] == raz) | (order['price'] == price):
-            if ((order['type'] == 'sell') & (order['cumsum_sell'] <= order['max'])) or \
-               ((order['type'] == 'buy') & (order['cumsum_buy'] <= order['max'])):
-                return order['value']
-            else:
-                return order['value'] - raz
+    def funk(self, order: pd.Series) -> int:
+        if order['type'] == 'sell':
+            one = order['cumsum_sell']
+            two = order['cumsum_buy']
         else:
-            return 0
+            one = order['cumsum_buy']
+            two = order['cumsum_sell']
+        if one <= two:
+            return int(order['value'])
+        else:
+            if order['value'] >= order['minraz']:
+                return int(order['value'] - order['minraz'])
+            else:
+                return int(0)
 
-    def orders(self):
+    def orders(self) -> pd.DataFrame:
         orders_pd = pd.DataFrame(self.list_orders)
         products = orders_pd['product'].unique()
         for product in products:
@@ -58,10 +59,9 @@ class Stock:
             else:
                 self.preponderance = 'sell'
                 self.volume = ffff.iloc[0]['cumsum_buy']
-
-
-            f['trade'] = f.apply(self.funk, args=(min_raz, price), axis=1)
+            f['trade'] = f.apply(self.funk, axis=1)
             print(f)
-
-            print('max:', max_trade, 'min_rax:', min_raz, 'price:', price)
+            print('value trade:', max_trade, 'min_rax:', min_raz, 'price:', price)
+            print('value sell:', f['cumsum_sell'].max(), 'value buy:', f['cumsum_buy'].max())
             print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
+            return f
