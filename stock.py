@@ -1,15 +1,12 @@
 import pandas as pd
-import numpy as np
 
 
 class Stock:
 
     def __init__(self):
         self.list_orders = []
-        self.preponderance = ''
-        self.volume = 0
 
-    def append_orders(self, list_orders):
+    def append_orders(self, list_orders: list[dict]):
         for order in list_orders:
             self.list_orders.append(order)
 
@@ -27,6 +24,11 @@ class Stock:
                 return int(order['value'] - order['minraz'])
             else:
                 return int(0)
+
+    def trade(self, trade_frame: pd.DataFrame):
+        for order in self.list_orders:
+            ord = trade_frame.xs(order['id'], axis=0)
+            print(ord['id'], ord['trade'], order['price'])
 
     def orders(self) -> pd.DataFrame:
         orders_pd = pd.DataFrame(self.list_orders)
@@ -46,22 +48,17 @@ class Stock:
             f['cumsum_sell'].fillna(0, inplace=True)
             f['cumsum_buy'].fillna(method='bfill', inplace=True)
             f['cumsum_buy'].fillna(0, inplace=True)
-
             f['max'] = f[['cumsum_sell', 'cumsum_buy']].min(axis=1)
             f['minraz'] = abs(f['cumsum_sell'] - f['cumsum_buy'])
             max_trade = f['max'].max()
             min_raz = f[f['max'] == max_trade]['minraz'].min()
             ffff = f[(f['max'] == max_trade) & (f['minraz'] == min_raz)]
             price = ffff.iloc[0]['price']
-            if ffff.iloc[0]['cumsum_sell'] < ffff.iloc[0]['cumsum_buy']:
-                self.preponderance = 'buy'
-                self.volume = ffff.iloc[0]['cumsum_sell']
-            else:
-                self.preponderance = 'sell'
-                self.volume = ffff.iloc[0]['cumsum_buy']
             f['trade'] = f.apply(self.funk, axis=1)
+            f['trade_price'] = price
             print(f)
             print('value trade:', max_trade, 'min_rax:', min_raz, 'price:', price)
             print('value sell:', f['cumsum_sell'].max(), 'value buy:', f['cumsum_buy'].max())
             print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
+            self.trade(f)
             return f

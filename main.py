@@ -1,7 +1,8 @@
 import stock
 import numpy as np
-import pandas as pc
 import pandas as pd
+import time
+
 
 
 def create_order(count: int) -> list:
@@ -22,6 +23,10 @@ def create_order(count: int) -> list:
 
 stock = stock.Stock()
 
-stock.append_orders(create_order(20))
+stock.append_orders(create_order(30))
 
 stock.orders()
+
+
+
+
