@@ -1,5 +1,7 @@
 import pandas as pd
 
+pd.options.mode.chained_assignment = None
+
 
 class Stock:
 
@@ -28,7 +30,7 @@ class Stock:
     def trade(self, trade_frame: pd.DataFrame):
         for order in self.list_orders:
             ord = trade_frame.xs(order['id'], axis=0)
-            print(ord['id'], ord['trade'], order['price'])
+            # print(ord['id'], ord['trade'])
 
     def orders(self) -> pd.DataFrame:
         orders_pd = pd.DataFrame(self.list_orders)
@@ -56,9 +58,12 @@ class Stock:
             price = ffff.iloc[0]['price']
             f['trade'] = f.apply(self.funk, axis=1)
             f['trade_price'] = price
-            print(f)
+            # print(f)
             print('value trade:', max_trade, 'min_rax:', min_raz, 'price:', price)
             print('value sell:', f['cumsum_sell'].max(), 'value buy:', f['cumsum_buy'].max())
             print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
             self.trade(f)
+            print(f.columns)
+            print(f[['type', 'price', 'value', 'cumsum_sell', 'cumsum_buy',
+       'max', 'minraz', 'trade']])
             return f

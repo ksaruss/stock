@@ -4,7 +4,6 @@ import pandas as pd
 import time
 
 
-
 def create_order(count: int) -> list:
     list_orders = []
     for i in range(count):
@@ -23,7 +22,7 @@ def create_order(count: int) -> list:
 
 stock = stock.Stock()
 
-stock.append_orders(create_order(30))
+stock.append_orders(create_order(10))
 
 stock.orders()
 
