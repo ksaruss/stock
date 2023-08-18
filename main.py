@@ -9,7 +9,7 @@ def create_order(count: int) -> list:
     for i in range(count):
         order = {'id': i,
                  'type': np.random.choice(['sell', 'buy']),
-                 'product': np.random.choice(['milk']),
+                 'product': np.random.choice(['milk', 'breat']),
                  'price': np.random.random() * 0.4 + 0.8,
                  'value': int(np.random.random() * 50 + 50)}
         if order['type'] == 'sell':
@@ -22,7 +22,7 @@ def create_order(count: int) -> list:
 
 stock = stock.Stock()
 
-stock.append_orders(create_order(10))
+stock.append_orders(create_order(10000))
 
 stock.orders()
 

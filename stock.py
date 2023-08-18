@@ -7,6 +7,7 @@ class Stock:
 
     def __init__(self):
         self.list_orders = []
+        self.stats = []
 
     def append_orders(self, list_orders: list[dict]):
         for order in list_orders:
@@ -28,11 +29,12 @@ class Stock:
                 return int(0)
 
     def trade(self, trade_frame: pd.DataFrame):
-        for order in self.list_orders:
-            ord = trade_frame.xs(order['id'], axis=0)
-            # print(ord['id'], ord['trade'])
+        print('------')
+        for i in trade_frame.to_dict(orient='records'):
+            pass
 
     def orders(self) -> pd.DataFrame:
+        # Загрузка списка ордеров на pandas
         orders_pd = pd.DataFrame(self.list_orders)
         products = orders_pd['product'].unique()
         for product in products:
@@ -58,12 +60,14 @@ class Stock:
             price = ffff.iloc[0]['price']
             f['trade'] = f.apply(self.funk, axis=1)
             f['trade_price'] = price
+            print('volume trade:', max_trade, 'min_rax:', min_raz, 'price:', price)
+            print('volume sell:', f['cumsum_sell'].max(), 'value buy:', f['cumsum_buy'].max())
+            # Тестовая строка
+            # print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
+            self.trade(f[f['trade'] > 0])
             # print(f)
-            print('value trade:', max_trade, 'min_rax:', min_raz, 'price:', price)
-            print('value sell:', f['cumsum_sell'].max(), 'value buy:', f['cumsum_buy'].max())
-            print(f[f['type'] == 'buy']['trade'].sum(), f[f['type'] == 'sell']['trade'].sum())
-            self.trade(f)
-            print(f.columns)
-            print(f[['type', 'price', 'value', 'cumsum_sell', 'cumsum_buy',
-       'max', 'minraz', 'trade']])
-            return f
+            stats = {'day': 1, 'product': product, 'price': price, 'volume_trade': max_trade,
+                     'volume_sell': f['cumsum_sell'].max(), 'volume_buy': f['cumsum_buy'].max()}
+            self.stats.append(stats)
+        print(pd.DataFrame(self.stats))
+        return f
